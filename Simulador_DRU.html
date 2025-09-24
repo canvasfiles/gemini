@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador: Asesor Financiero en Andina Raíces • UI Rediseño (Brand)</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts: Space Grotesk (body) -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- PP Gatwick (display) local / fallback -->
+  <style>
+    @font-face { font-family: 'PP Gatwick'; src: local('PP Gatwick'); font-display: swap; }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Space Grotesk", "ui-sans-serif", "system-ui"] },
+          colors: {
+            brand: {
+              navy: '#0A2E4D',
+              gray: '#B8B8B0',
+              light1: '#ECEDEC',
+              light2: '#F3F4F4',
+              light3: '#FAFAFA',
+              accent: '#E74E39'
+            }
+          },
+          boxShadow: { elevated: '0 10px 25px -5px rgba(0,0,0,.08), 0 10px 10px -5px rgba(0,0,0,.04)' },
+          keyframes: {
+            fadeUp: { '0%': {opacity:0, transform:'translateY(6px)'}, '100%': {opacity:1, transform:'translateY(0)'} },
+            pulseGlow: { '0%,100%': { boxShadow:'0 0 0 0 rgba(10,46,77,.35)' }, '50%': { boxShadow:'0 0 0 10px rgba(10,46,77,0)' } }
+          },
+          animation: { fadeUp: 'fadeUp .35s ease both', pulseGlow: 'pulseGlow 2s ease-in-out infinite' }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: 'Space Grotesk', ui-sans-serif, system-ui; }
+    .font-display { font-family: 'PP Gatwick', 'League Spartan', 'Space Grotesk', ui-sans-serif, system-ui; }
+    .decision-card { transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, opacity .2s ease; }
+    .decision-card:hover { transform: translateY(-3px); }
+    .decision-card[disabled] { opacity: .55; cursor: not-allowed; filter: grayscale(20%); }
+    .glass { background: rgba(255,255,255,.7); backdrop-filter: blur(10px); }
+    .dark .glass { background: rgba(2,6,12,.45); }
+    .modal-enter { opacity: 0; transform: translateY(8px) scale(.98); }
+    .modal-enter-active { opacity: 1; transform: translateY(0) scale(1); transition: all .25s ease; }
+    .modal-exit { opacity: 1; transform: translateY(0) scale(1); }
+    .modal-exit-active { opacity: 0; transform: translateY(8px) scale(.98); transition: all .2s ease; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-brand-light1 via-white to-brand-light2 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 text-slate-800 dark:text-slate-100">
+
+<!-- Decorative stripes -->
+<div aria-hidden="true" class="fixed inset-0 -z-10 dark:hidden">
+  <div class="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-b from-brand-light2/60 to-brand-light3/0"></div>
+  <div class="absolute top-0 right-24 h-full w-8 bg-brand-light2/70"></div>
+  <div class="absolute top-0 right-10 h-full w-6 bg-brand-light3/70"></div>
+</div>
+
+
+  <div id="simulator-container" class="container mx-auto px-4 py-6 sm:py-10 max-w-5xl">
+
+    <!-- Header -->
+    <header class="glass rounded-2xl shadow-elevated p-5 sm:p-7 mb-6 sm:mb-8 flex items-start sm:items-center justify-between gap-4 border border-brand-light1/60 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        <!-- Logo responsive (no enlace por ahora) -->
+        <div class="shrink-0 rounded-2xl p-0">
+          <img src="DRU_logotipo.png" alt="Logo DRU" class="max-h-10 sm:max-h-14 w-auto object-contain dark:invert" />
+        </div>
+        <div>
+          <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-brand-navy dark:text-brand-light2">Simulador: Tu Rol como Asesor Financiero</h1>
+          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300">Guía a "Andina Raíces" en su expansión internacional</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" class="group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+          <svg id="sun" class="w-4 h-4 text-amber-500 hidden dark:inline" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.79L6.76 4.84zm10.48 0l1.8-1.79 1.79 1.79-1.8 1.79-1.79-1.79zM12 2h0v2h0V2zm0 18h0v2h0v-2zM4 12H2v0h2v0zm18 0h-2v0h2v0zM6.76 19.16l-1.8 1.79-1.79-1.79 1.8-1.79 1.79 1.79zm12.01-1.79l1.79 1.79-1.79 1.79-1.79-1.79 1.79-1.79z"/><circle cx="12" cy="12" r="5"/></svg>
+          <svg id="moon" class="w-4 h-4 text-slate-700 dark:text-slate-200 dark:hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M21.64 13A9 9 0 1 1 11 2.36 7 7 0 1 0 21.64 13z"/></svg>
+          <span class="hidden sm:inline">Modo</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Progress -->
+    <div id="progress-wrap" class="glass rounded-2xl shadow-elevated p-4 mb-6 sm:mb-8 flex items-center gap-4 border border-brand-light1/60 dark:border-slate-800">
+      <div class="flex-1">
+        <div class="flex justify-between text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
+          <span id="progress-label">Progreso</span>
+          <span id="progress-count">0 / 4</span>
+        </div>
+        <div class="h-2 w-full rounded-full bg-brand-gray/40 dark:bg-slate-700 overflow-hidden">
+          <div id="progress-bar" class="h-full w-0 rounded-full bg-brand-navy transition-all"></div>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6v6l4 2"/></svg>
+        <span>Duración aprox. 8–10 min</span>
+      </div>
+    </div>
+
+    <!-- Dynamic Content Area -->
+    <main id="content-area" class="glass rounded-2xl shadow-elevated p-6 sm:p-8 animate-fadeUp border border-brand-light1/60 dark:border-slate-800" aria-live="polite">
+      <!-- Se inyecta via JS -->
+    </main>
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedback-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative max-w-2xl mx-auto mt-24 px-4">
+      <div id="modal-content" class="modal-enter glass rounded-2xl shadow-2xl border border-white/50 dark:border-slate-700 p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <h2 id="modal-title" class="font-display text-2xl font-bold">Retroalimentación</h2>
+          <button id="modal-close" class="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Cerrar">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M6 18L18 6"/></svg>
+          </button>
+        </div>
+        <div id="modal-body" class="text-slate-700 dark:text-slate-200 space-y-4 mt-4">
+          <p id="static-feedback" class="text-base"></p>
+          <div class="mt-4 p-4 rounded-xl bg-white/70 dark:bg-slate-800/60 border border-brand-light1/60 dark:border-slate-700">
+            <h3 class="font-semibold text-brand-navy flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="mr-2" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0 .217.066l.063-.029a.5.5 0 0 1 .707.707l-.063.029a.25.25 0 0 0-.217-.066l-.63.29a.5.5 0 0 1-.707-.707l.063-.029a.25.25 0 0 0 .217.066ZM10.5 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/>
+              </svg>
+              Análisis del Asistente IA
+            </h3>
+            <div id="ai-feedback" class="mt-2 text-brand-navy">Cargando análisis...</div>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end gap-2">
+          <button id="modal-button" class="bg-brand-navy text-white font-bold py-2 px-6 rounded-xl hover:brightness-110 transition-colors focus:outline-none focus:ring-4 focus:ring-brand-gray/50">Continuar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Dark mode toggle ----
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    function applyTheme(theme) { if (theme === 'dark') root.classList.add('dark'); else root.classList.remove('dark'); localStorage.setItem('theme', theme); }
+    const storedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(storedTheme);
+    themeToggle?.addEventListener('click', () => { applyTheme(root.classList.contains('dark') ? 'light' : 'dark'); });
+
+    // ---- Elements ----
+    const contentArea = document.getElementById('content-area');
+    const modal = document.getElementById('feedback-modal');
+    const modalContent = document.getElementById('modal-content');
+    const modalTitle = document.getElementById('modal-title');
+    const staticFeedback = document.getElementById('static-feedback');
+    const aiFeedback = document.getElementById('ai-feedback');
+    const modalButton = document.getElementById('modal-button');
+    const modalClose = document.getElementById('modal-close');
+    const progressBar = document.getElementById('progress-bar');
+    const progressCount = document.getElementById('progress-count');
+
+    // --- Gemini API Configuration ---
+    const API_KEY = "AIzaSyAHtdGYLY9JB0EC8Pl5quaneELe9k8ippg"; // considera mover a backend
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+    const SYSTEM_PROMPT = `Actúas como un tutor financiero experto y amigable. Tu tarea es proporcionar retroalimentación clara y concisa a un estudiante en un simulador de gestión financiera. El estudiante está en el rol de un Asesor Financiero para una empresa llamada "Andina Raíces". Analiza el escenario, la opción elegida por el estudiante y la justificación. Explica por qué la opción elegida es correcta o incorrecta, usando los conceptos financieros del curso. Mantén un tono positivo y alentador. No más de 3 frases. Usa un lenguaje sencillo.`;
+
+    // --- Simulator State ---
+    let currentDecision = 0;
+    let simulatorStarted = false;
+    // Nuevo: mapa de opciones deshabilitadas por decisión
+    const disabledMap = [];
+
+    const decisions = [
+      {
+        scenario: `
+          <h2 class="font-display text-2xl font-bold mb-4 text-brand-navy dark:text-brand-light2">Decisión 1: El Capital Inicial para la Expansión</h2>
+          <p class="mb-6 text-slate-600 dark:text-slate-300">"Andina Raíces" necesita una inyección de capital significativa para iniciar su expansión internacional (investigación de mercado, adaptaciones de producto, logística inicial). El equipo directivo te presenta varias opciones. Tu primera tarea como asesor es recomendar la fuente de financiamiento que mejor se alinee con el <strong>objetivo de maximizar el valor de la empresa a largo plazo</strong>, manteniendo el control de la familia fundadora.</p>`,
+        options: [
+          { text: "Buscar un inversor de capital de riesgo (Venture Capital) que aporte una gran suma a cambio de una participación mayoritaria en la empresa.", isOptimal: false, feedback: "Aunque esta opción trae mucho capital, ceder una participación mayoritaria compromete el control de la empresa y su visión a largo plazo. No es la opción óptima para una empresa familiar que valora su independencia." },
+          { text: "Solicitar un préstamo bancario a largo plazo, bien estructurado, con una tasa de interés fija.", isOptimal: true, feedback: "¡Excelente decisión! Un préstamo a largo plazo proporciona el capital necesario sin diluir la propiedad. Permite a la empresa crecer manteniendo el control. Esta es la función de 'Obtención de Recursos' bien aplicada para el objetivo de 'Maximizar el Valor'." },
+          { text: "Utilizar líneas de crédito a corto plazo para financiar los gastos a medida que surjan.", isOptimal: false, feedback: "Financiar una estrategia a largo plazo con deuda a corto plazo es muy riesgoso. Las altas tasas de interés y la necesidad de renovación constante ponen en peligro el objetivo de 'Garantizar la liquidez' y la estabilidad financiera." },
+          { text: "Lanzar una campaña de crowdfunding prometiendo productos a futuro.", isOptimal: false, feedback: "El crowdfunding puede ser útil, pero es improbable que genere el capital sustancial necesario para una expansión internacional. Además, crea una obligación con muchos 'micro-inversores', lo que puede ser complejo de gestionar." }
+        ]
+      },
+      {
+        scenario: `
+          <h2 class="font-display text-2xl font-bold mb-4 text-brand-navy dark:text-brand-light2">Decisión 2: Evaluación de Inversión en Nueva Planta</h2>
+          <p class="mb-6 text-slate-600 dark:text-slate-300">Un consultor europeo propone a "Andina Raíces" una inversión clave: construir una pequeña planta de procesamiento en Europa para reducir costos logísticos. El costo inicial de la inversión es de <strong>$250,000</strong>. Se estima que esta planta generará flujos de caja positivos de <strong>$80,000 anuales durante los próximos 5 años</strong>. La tasa de descuento que consideras apropiada para este proyecto es del <strong>10%</strong>. ¿Deberías recomendar la inversión?</p>`,
+        options: [
+          { text: "Sí, recomendar la inversión. Los ingresos totales ($400,000) son mayores que el costo inicial.", isOptimal: false, feedback: "¡Cuidado! Sumar los flujos de caja futuros sin descontarlos es un error común. Recuerda el principio del 'Valor del Dinero en el Tiempo': el dinero del futuro vale menos hoy. Debes calcular el Valor Presente (VP) de esos flujos." },
+          { text: "No, rechazar la inversión. Es demasiado arriesgado invertir tanto dinero en el extranjero en esta etapa.", isOptimal: false, feedback: "Aunque el riesgo es un factor, tu decisión debe basarse en un análisis financiero sólido, no solo en la intuición. El cálculo del Valor Presente nos da una herramienta objetiva para evaluar si el retorno justifica el riesgo." },
+          { text: "Sí, recomendar la inversión. El Valor Presente (VP) de los flujos de caja futuros es aproximadamente $303,260, lo cual es mayor que el costo de la inversión.", isOptimal: true, feedback: "¡Análisis impecable! Has aplicado correctamente el concepto de Valor Presente de una anualidad. Al descontar los flujos futuros, demuestras que el proyecto no solo se paga a sí mismo, sino que genera un valor adicional de más de $50,000 para la empresa. Esta es una decisión de inversión que maximiza el valor." },
+          { text: "Necesito más información. El Balance General de la empresa es necesario para tomar esta decisión.", isOptimal: false, feedback: "Si bien el Balance General es crucial para entender la salud financiera general (como vimos en el autodiagnóstico), para evaluar la rentabilidad de un proyecto específico, la herramienta principal es el análisis de Flujos de Caja Descontados y el cálculo del Valor Presente." }
+        ]
+      },
+      {
+        scenario: `
+          <h2 class="font-display text-2xl font-bold mb-4 text-brand-navy dark:text-brand-light2">Decisión 3: Gestionando un Excedente de Caja</h2>
+          <p class="mb-6 text-slate-600 dark:text-slate-300">Gracias a un primer contrato de exportación exitoso, "Andina Raíces" tiene un excedente de caja temporal de <strong>$100,000</strong> que no necesitará durante <strong>2 años</strong>. Quieres invertir este dinero para generar un rendimiento. Recibes dos ofertas de inversión de bajo riesgo:</p>
+          <ul class="list-disc list-inside mb-6 space-y-2 text-slate-600 dark:text-slate-300">
+            <li><strong>Inversión Alfa:</strong> Ofrece una tasa de <strong>interés simple del 8% anual</strong>.</li>
+            <li><strong>Inversión Beta:</strong> Ofrece una tasa de <strong>interés compuesto del 7.5% anual</strong>.</li>
+          </ul>
+          <p class="text-slate-600 dark:text-slate-300">¿Qué opción genera un mayor monto final y deberías recomendar?</p>`,
+        options: [
+          { text: "Inversión Alfa, porque la tasa de interés (8%) es más alta.", isOptimal: false, feedback: "Aunque la tasa de interés nominal es más alta, no estás considerando el 'efecto bola de nieve'. El interés compuesto, incluso con una tasa ligeramente menor, puede superar al interés simple en el tiempo." },
+          { text: "Inversión Beta. Al final de los 2 años, el monto será de $115,562.50, superando a la Inversión Alfa.", isOptimal: false, feedback: "Revisa el cálculo: Simple: $100k * 0.08 * 2 = $16k -> $116,000. Compuesto: $100k * (1.075)^2 = $115,562.50. Para 2 años, gana la tasa simple de 8%." },
+          { text: "Inversión Alfa. Al final de los 2 años, el monto será de $116,000, superando a la Inversión Beta.", isOptimal: true, feedback: "¡Cálculo correcto y decisión acertada! En un plazo corto como 2 años, una tasa de interés simple más alta puede superar a una compuesta ligeramente más baja. Alfa: $116,000 vs Beta: $115,562.50." },
+          { text: "Inversión Beta, porque el interés compuesto siempre es mejor.", isOptimal: false, feedback: "El interés compuesto no siempre gana en periodos cortos si la tasa simple es mayor. Siempre calcula antes de decidir." },
+          { text: "Ambas opciones son similares, el resultado final no variará mucho.", isOptimal: false, feedback: "Cada punto porcentual cuenta. Aunque la diferencia sea ~$437.50, como asesor optimizas cada peso." }
+        ]
+      },
+      {
+        scenario: `
+          <h2 class="font-display text-2xl font-bold mb-4 text-brand-navy dark:text-brand-light2">Decisión 4: Modernizando el Rol Financiero</h2>
+          <p class="mb-6 text-slate-600 dark:text-slate-300">El equipo financiero de "Andina Raíces" dedica mucho tiempo a tareas manuales y repetitivas (generación de reportes, conciliación de pagos). Esto les impide enfocarse en el análisis estratégico que la expansión requiere. Para evolucionar de 'contadores del pasado' a 'arquitectos del futuro', ¿qué tecnología recomendarías implementar prioritariamente?</p>`,
+          options: [
+            { text: "Implementar Blockchain para asegurar todas las transacciones de exportación.", isOptimal: false, feedback: "Blockchain es potente, pero no aborda el cuello de botella actual: tareas manuales. Es una solución avanzada para otro problema." },
+            { text: "Invertir en Inteligencia Artificial (IA) y Machine Learning para predecir las ventas en los nuevos mercados.", isOptimal: false, feedback: "La IA será clave, pero primero libera capacidad operativa. Automatiza lo repetitivo antes de predecir." },
+            { text: "Adoptar un sistema de Automatización Robótica de Procesos (RPA) para las tareas repetitivas.", isOptimal: true, feedback: "¡Decisión estratégica! El RPA automatiza reportes y conciliaciones, liberando al equipo para el análisis y la planificación." },
+            { text: "Contratar más personal para el departamento financiero para repartir la carga de trabajo.", isOptimal: false, feedback: "Escala mal y es costoso. La tecnología ofrece eficiencia sostenible." }
+          ]
+        }
+    ];
+
+    // --- API Call Function ---
+    async function getAIFeedback(scenario, chosenOption, isOptimal) {
+      aiFeedback.innerHTML = '<div class="flex items-center text-brand-navy"><svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Cargando análisis...</div>';
+
+      const userQuery = `\nAnálisis de la Decisión:\n- Escenario: ${scenario.replace(/<[^>]+>/g, ' ')}\n- Opción elegida por el estudiante: "${chosenOption.text}"\n- ¿Fue la opción óptima?: ${isOptimal ? 'Sí' : 'No'}\n- Justificación predefinida: ${chosenOption.feedback}\n\nProporciona tu análisis como tutor experto.`;
+
+      try {
+        const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] } }) });
+        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+        const result = await response.json();
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        aiFeedback.textContent = text || 'No se pudo generar el análisis de la IA en este momento. Por favor, revisa la retroalimentación principal.';
+      } catch (error) {
+        console.error('Error fetching AI feedback:', error);
+        aiFeedback.textContent = 'Hubo un error al contactar al asistente de IA. La retroalimentación principal sigue siendo válida.';
+      }
+    }
+
+    // --- Rendering Helpers ---
+    function updateProgress() {
+      const total = decisions.length;
+      const done = Math.min(currentDecision, total);
+      const pct = (done / total) * 100;
+      progressBar.style.width = pct + '%';
+      progressCount.textContent = `${done} / ${total}`;
+    }
+
+    function optionCard(text, onClick, disabled=false) {
+      const btn = document.createElement('button');
+      btn.className = 'decision-card w-full text-left bg-white/80 dark:bg-slate-800/60 border border-brand-light1/60 dark:border-slate-700 rounded-2xl p-4 sm:p-5 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-4 focus:ring-brand-gray/40 transition group';
+      btn.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="mt-1 shrink-0 rounded-xl border border-brand-gray/70 dark:border-slate-600 p-2 group-hover:bg-brand-light2 dark:group-hover:bg-slate-700">
+            <svg class="w-5 h-5 text-brand-navy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6l4 4-4 4M8 10h8"/></svg>
+          </div>
+          <p class="font-medium leading-relaxed">${text}</p>
+        </div>`;
+      if (disabled) { btn.setAttribute('disabled','true'); }
+      btn.addEventListener('click', () => { if (!btn.hasAttribute('disabled')) onClick(); });
+      return btn;
+    }
+
+    // --- Rendering Logic ---
+    function renderStartScreen() {
+      contentArea.innerHTML = `
+        <div class="text-center">
+          <h2 class="font-display text-2xl font-bold text-brand-navy dark:text-brand-light2 mb-3">Tu Misión en Andina Raíces</h2>
+          <p class="mb-4 text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">"Andina Raíces", una exitosa empresa familiar de productos orgánicos, se encuentra en una encrucijada. Tienen la oportunidad única de expandirse al mercado internacional, pero este gran paso presenta enormes desafíos financieros.</p>
+          <p class="mb-8 text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">Como su nuevo/a <strong>Asesor/a Financiero/a Estratégico/a</strong>, tu misión será guiarlos en esta travesía. De tus decisiones dependerá que "Andina Raíces" se convierta en una marca global o se quede en una promesa incumplida.</p>
+
+          <div class="rounded-2xl p-6 mb-8 text-left border border-brand-light1/60 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60">
+            <h3 class="font-display text-lg font-semibold text-brand-navy dark:text-brand-light2 mb-3">Instrucciones del Simulador</h3>
+            <ul class="space-y-2 text-slate-600 dark:text-slate-300">
+              <li class="flex gap-2"><span class="mt-1">•</span> Analiza cuidadosamente cada escenario y los datos proporcionados.</li>
+              <li class="flex gap-2"><span class="mt-1">•</span> Selecciona la opción más estratégica, aplicando los conceptos de las semanas 1 y 2.</li>
+              <li class="flex gap-2"><span class="mt-1">•</span> Recibirás retroalimentación inmediata y un análisis de IA.</li>
+              <li class="flex gap-2"><span class="mt-1">•</span> Si tu elección no es óptima, podrás reconsiderar y aprender.</li>
+            </ul>
+          </div>
+          <button class="inline-flex items-center gap-2 bg-brand-navy text-white font-bold py-3 px-8 rounded-2xl shadow-elevated hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-gray/40 animate-pulseGlow" onclick="startSimulator()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            Comenzar Simulación
+          </button>
+        </div>`;
+      updateProgress();
+    }
+
+    function renderDecision(decisionIndex) {
+      const total = decisions.length;
+      if (decisionIndex >= total) { renderCompletionScreen(); return; }
+
+      const decision = decisions[decisionIndex];
+      // init disabled set if missing
+      if (!disabledMap[decisionIndex]) disabledMap[decisionIndex] = new Set();
+
+      contentArea.innerHTML = `
+        ${decision.scenario}
+        <div class="grid grid-cols-1 gap-4 sm:gap-5" id="options"></div>
+      `;
+
+      const optionsWrap = document.getElementById('options');
+      decision.options.forEach((opt, idx) => {
+        const isDisabled = disabledMap[decisionIndex].has(idx);
+        optionsWrap.appendChild(optionCard(opt.text, () => selectOption(decisionIndex, idx), isDisabled));
+      });
+      updateProgress();
+    }
+
+    function renderCompletionScreen() {
+      contentArea.innerHTML = `
+        <div class="text-center py-6">
+          <h2 class="font-display text-3xl font-bold text-brand-navy dark:text-brand-light2 mb-3">¡Felicitaciones!</h2>
+          <p class="text-lg text-slate-700 dark:text-slate-300 mb-6 max-w-2xl mx-auto">Has completado con éxito el simulador y has guiado a "Andina Raíces" a través de decisiones financieras críticas. Demostraste aplicar fundamentos de gestión financiera y valor del dinero en el tiempo.</p>
+          <button class="bg-brand-navy text-white font-bold py-3 px-8 rounded-2xl hover:brightness-110 transition-colors" onclick="restartSimulator()">Volver a Empezar</button>
+        </div>`;
+      // confetti simple
+      for (let i = 0; i < 24; i++) {
+        const s = document.createElement('div');
+        s.textContent = '🎉';
+        s.style.position = 'fixed';
+        s.style.left = Math.random()*100 + 'vw';
+        s.style.top = '-10px';
+        s.style.fontSize = (16 + Math.random()*24) + 'px';
+        s.style.transition = 'transform 1.2s ease, opacity 1.2s ease';
+        document.body.appendChild(s);
+        setTimeout(()=>{ s.style.transform = `translateY(${80 + Math.random()*80}vh)`; s.style.opacity = 0; setTimeout(()=>s.remove(), 1400); }, 10);
+      }
+      updateProgress();
+    }
+
+    // --- Interaction Logic ---
+    let pendingDisable = null; // {decisionIndex, optionIndex} si fue incorrecta
+
+    function startSimulator() { simulatorStarted = true; currentDecision = 0; renderDecision(currentDecision); }
+
+    function selectOption(decisionIndex, optionIndex) {
+      const decision = decisions[decisionIndex];
+      const option = decision.options[optionIndex];
+      // marcar pendiente de desactivar si es incorrecta
+      pendingDisable = option.isOptimal ? null : { decisionIndex, optionIndex };
+      showFeedback(option.isOptimal, option.feedback, decision.scenario, option);
+    }
+
+    function showFeedback(isOptimal, feedbackText, scenario, option) {
+      modalTitle.textContent = isOptimal ? '¡Decisión Óptima!' : 'Una Opción para Reconsiderar';
+      staticFeedback.textContent = feedbackText;
+      getAIFeedback(scenario, option, isOptimal);
+
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => { modalContent.classList.remove('modal-exit'); modalContent.classList.add('modal-enter-active'); });
+
+      modalButton.onclick = () => {
+        if (isOptimal) { currentDecision++; hideFeedbackAndProceed(); }
+        else { hideFeedbackAndRetry(); }
+      };
+      modalButton.textContent = isOptimal ? 'Siguiente Decisión' : 'Volver a Intentar';
+    }
+
+    function hideFeedbackAndProceed() {
+      modalContent.classList.remove('modal-enter-active');
+      modalContent.classList.add('modal-exit-active');
+      setTimeout(() => { modal.classList.add('hidden'); modalContent.classList.remove('modal-exit-active'); renderDecision(currentDecision); }, 220);
+    }
+
+    function hideFeedbackAndRetry() {
+      // si hubo opción incorrecta, desactivarla
+      if (pendingDisable) {
+        const { decisionIndex, optionIndex } = pendingDisable;
+        if (!disabledMap[decisionIndex]) disabledMap[decisionIndex] = new Set();
+        disabledMap[decisionIndex].add(optionIndex);
+        pendingDisable = null;
+      }
+      modalContent.classList.remove('modal-enter-active');
+      modalContent.classList.add('modal-exit-active');
+      setTimeout(() => { modal.classList.add('hidden'); modalContent.classList.remove('modal-exit-active'); renderDecision(currentDecision); }, 200);
+    }
+
+    function restartSimulator() { simulatorStarted = false; currentDecision = 0; for (let i=0;i<decisions.length;i++) disabledMap[i] = new Set(); renderStartScreen(); }
+
+    modalClose?.addEventListener('click', hideFeedbackAndRetry);
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) hideFeedbackAndRetry(); });
+
+    // --- Initial Load ---
+    window.onload = () => { renderStartScreen(); };
+  </script>
+</body>
+</html>
